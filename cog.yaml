@@ -8,5 +8,5 @@ build:
     - "ftfy==6.1.1"
     - "scipy==1.9.0"
     - "transformers==4.21.1"
+    - "requests==2.28.2"
 predict: "predict.py:Predictor"
-image: "r8.im/andreasjansson/stable-diffusion-inpainting"
