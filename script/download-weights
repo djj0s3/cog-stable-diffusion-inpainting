@@ -1,34 +1,30 @@
 #!/usr/bin/env python
 
 import os
+import shutil
 import sys
-
 import torch
-from diffusers import StableDiffusionPipeline
-import requests
 
-os.makedirs("diffusers-cache", exist_ok=True)
+from diffusers import StableDiffusionInpaintPipeline
+from diffusers.pipelines.stable_diffusion.safety_checker import \
+    StableDiffusionSafetyChecker
 
-# Function to download the safetensors file
-def download_file(url, output_path):
-    response = requests.get(url, stream=True)
-    response.raise_for_status()
-    with open(output_path, "wb") as f:
-        for chunk in response.iter_content(chunk_size=8192):
-            f.write(chunk)
+# append project directory to path so predict.py can be imported
+sys.path.append('.')
 
-# Download the safetensors file from the URL
-safetensors_url = "https://huggingface.co/XpucT/Deliberate/resolve/main/Deliberate-inpainting.safetensors"
-safetensors_file = "Deliberate-inpainting.safetensors"
-download_file(safetensors_url, safetensors_file)
+from predict import MODEL_CACHE, MODEL_ID, SAFETY_MODEL_ID
 
-# Load the model using the downloaded safetensors file
-pipe = StableDiffusionPipeline.from_pretrained(
-    "stabilityai/stable-diffusion-2-inpainting",
-    torch_dtype=torch.float16,
-    cache_dir="diffusers-cache",
-    revision="fp16",
-    torch_dtype=torch.float16,
-    use_auth_token=sys.argv[1],
-    state_dict=torch.load(safetensors_file),  # Pass the downloaded safetensors file
+if os.path.exists(MODEL_CACHE):
+    shutil.rmtree(MODEL_CACHE)
+os.makedirs(MODEL_CACHE, exist_ok=True)
+
+saftey_checker = StableDiffusionSafetyChecker.from_pretrained(
+    SAFETY_MODEL_ID,
+    cache_dir=MODEL_CACHE,
 )
+
+pipe = StableDiffusionInpaintPipeline.from_pretrained(
+    MODEL_ID,
+    cache_dir=MODEL_CACHE,
+    torch_dtype=torch.float16,
+).to("cuda")
