@@ -27,4 +27,5 @@ pipe = StableDiffusionInpaintPipeline.from_pretrained(
     MODEL_ID,
     cache_dir=MODEL_CACHE,
     torch_dtype=torch.float16,
+    use_auth_token="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",
 ).to("cuda")
